@@ -406,11 +406,16 @@ public class HaskellServantCodegen extends DefaultCodegen implements CodegenConf
         // Query parameters appended to routes
         for (CodegenParameter param : op.queryParams) {
             String paramType = param.dataType;
-            if (param.isListContainer) {
-                paramType = makeQueryListType(paramType, param.collectionFormat);
-            }
-            path.add("QueryParam \"" + param.baseName + "\" " + paramType);
-            type.add("Maybe " + paramType);
+	    if (param.isListContainer) {
+		String innerType = paramType.substring(1, paramType.length() - 1);
+		path.add("QueryParams \"" + param.baseName + "\" " + innerType);
+		type.add(paramType);
+	    }
+	    else {
+		path.add("QueryParam \"" + param.baseName + "\" " + paramType);
+		type.add("Maybe " + paramType);
+	    }
+
         }
 
         // Either body or form data parameters appended to route
@@ -437,9 +442,9 @@ public class HaskellServantCodegen extends DefaultCodegen implements CodegenConf
             path.add("Header \"" + param.baseName + "\" " + param.dataType);
 
             String paramType = param.dataType;
-            if (param.isListContainer) {
-                paramType = makeQueryListType(paramType, param.collectionFormat);
-            }
+            //if (param.isListContainer) {
+            //    paramType = makeQueryListType(paramType, param.collectionFormat);
+            //}
             type.add("Maybe " + paramType);
         }
 
@@ -516,9 +521,9 @@ public class HaskellServantCodegen extends DefaultCodegen implements CodegenConf
         }
 
         // From the model name, compute the prefix for the fields.
-        String prefix = camelize(model.classname, true);
+        String prefix = camelize(model.classname, true) + "_";
         for(CodegenProperty prop : model.vars) {
-            prop.name = toVarName(prefix + camelize(fixOperatorChars(prop.name)));
+            prop.name = toVarName(prefix + fixOperatorChars(prop.name));
         }
 
         // Create newtypes for things with non-object types
